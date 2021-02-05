@@ -17,17 +17,21 @@ app.config.from_object(__name__)
 CORS(app, resources={r'/*': {'origins': '*'}})
 
 def despace(s: str) -> str:
+    """ Strip spaces from input string """
     return s.replace(b' ', b'').replace(b'(', b'').replace(b')', b'')
 
+# A lambda function to strip spaces - testing to see which one more reliable
 stripped = lambda s: b''.join(i for i in s if 31 < ord(i) < 127)
 
 # sanity check route
 @app.route('/ping', methods=['GET'])
 def ping_pong():
+    """ Just tests that the server is awake """
     return jsonify('Hi, Ken!')
 
 @app.route('/home', methods=['GET'])
 def home_focuser():
+    """ Return focuser to its home position - defined as the last commanded position """
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, PORT))
@@ -43,6 +47,7 @@ def home_focuser():
 
 @app.route('/center', methods=['GET'])
 def center_focuser():
+    """ Move focuser to the middle of its travel range """
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, PORT))
@@ -58,6 +63,7 @@ def center_focuser():
 
 @app.route('/zero', methods=['GET'])
 def zero_focuser():
+    """ Set focuser to its zero point, which is completely retracted """
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, PORT))
@@ -73,6 +79,7 @@ def zero_focuser():
 
 @app.route('/move', methods=['POST'])
 def move_focuser():
+    """ Move focuser to arbitrary position passed in as parameter to API call """
     target = str(request.form['target'])
     while len(target) < 6:
         target = '0' + target
@@ -92,6 +99,7 @@ def move_focuser():
 
 @app.route('/status', methods=['GET'])
 def focuser_status():
+    """ Report on current status of focusing unit """
     response = {}
     delim = b' = '
     try:
